@@ -18,6 +18,10 @@ class _LoginViewState extends State<LoginView> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Image.asset(
+                'assets/images/logo.png',
+                height: 120,
+              ),
               Text(
                 'Rotisseria do Mércio',
                 style: TextStyle(
