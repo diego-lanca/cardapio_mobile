@@ -1,3 +1,6 @@
+import 'package:cardapio_mobile/pages/home_page.dart';
+import 'package:cardapio_mobile/pages/login_page.dart';
+import 'package:cardapio_mobile/pages/main_page.dart';
 import 'package:cardapio_mobile/pages/register_page.dart';
 import 'package:cardapio_mobile/providers/auth_provider.dart';
 import 'package:cardapio_mobile/services/local_storage_service.dart';
@@ -25,12 +28,13 @@ class MainApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Cardápio App',
-        initialRoute: '/register',
+        initialRoute: '/login',
         debugShowCheckedModeBanner: false,
         routes: {
+          '/login': (context) => const LoginView(),
           '/register': (context) => const RegisterPage(),
-          // '/login': (context) => const LoginPage(),
-          // '/home': (context) => const HomePage(),
+          '/home': (context) => const HomePage(),
+          '/main': (context) => const MainPage()
         },
       ),
     );

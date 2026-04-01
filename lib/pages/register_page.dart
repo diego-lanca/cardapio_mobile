@@ -20,7 +20,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -33,33 +32,45 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  try {
-    await context.read<AuthProvider>().register(
-      email: _emailController.text.trim(),
-      username: _usernameController.text.trim(),
-      fullName: _fullNameController.text.trim(),
-      password: _passwordController.text.trim(),
-    );
+    try {
+      await context.read<AuthProvider>().register(
+        email: _emailController.text.trim(),
+        username: _usernameController.text.trim(),
+        fullName: _fullNameController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cadastro realizado com sucesso!')),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cadastro realizado com sucesso!')),
+      );
 
-    // Navigator.pushReplacementNamed(context, '/home');
-  } catch (e) {
-    if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/main');
+    } catch (e) {
+      if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
   }
-}
 
-  String? _validateName(String? value) {
+  String? _validateUserame(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Informe seu nome de usuário';
+    }
+
+    if (value.trim().length < 3) {
+      return 'O usuário deve ter pelo menos 3 caracteres';
+    }
+
+    return null;
+  }
+
+  String? _validateFullName(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Informe seu nome';
     }
@@ -124,6 +135,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final isLoading = authProvider.isLoading;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Cadastro'), centerTitle: true),
       body: SafeArea(
@@ -153,7 +167,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 TextFormField(
                   controller: _usernameController,
                   textInputAction: TextInputAction.next,
-                  validator: _validateName,
+                  validator: _validateUserame,
                   decoration: _inputDecoration(
                     label: 'Usuário',
                     icon: Icons.person_outline,
@@ -164,7 +178,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 TextFormField(
                   controller: _fullNameController,
                   textInputAction: TextInputAction.next,
-                  validator: _validateName,
+                  validator: _validateFullName,
                   decoration: _inputDecoration(
                     label: 'Nome completo',
                     icon: Icons.person_outline,
@@ -236,11 +250,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 SizedBox(
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
-                    child: _isLoading
+                    onPressed: isLoading ? null : _register,
+                    child: isLoading
                         ? const SizedBox(
-                            height: 22,
-                            width: 22,
+                            width: 20,
+                            height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Text('Cadastrar'),
@@ -254,7 +268,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     const Text('Já tem uma conta?'),
                     TextButton(
                       onPressed: () {
-                        // Navigator.pushNamed(context, '/login');
+                        Navigator.pushNamed(context, '/login');
                       },
                       child: const Text('Entrar'),
                     ),

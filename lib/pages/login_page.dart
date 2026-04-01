@@ -20,7 +20,7 @@ class _LoginViewState extends State<LoginView> {
             children: [
               Image.asset(
                 'assets/images/logo.png',
-                height: 120,
+                height: 500,
               ),
               Text(
                 'Rotisseria do Mércio',
