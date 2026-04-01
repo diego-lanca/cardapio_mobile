@@ -1,4 +1,6 @@
+import 'package:cardapio_mobile/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -10,7 +12,8 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
 
-  final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -21,7 +24,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _usernameController.dispose();
+    _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -29,43 +33,31 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-    FocusScope.of(context).unfocus();
+  if (!_formKey.currentState!.validate()) return;
 
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+  try {
+    await context.read<AuthProvider>().register(
+      email: _emailController.text.trim(),
+      username: _usernameController.text.trim(),
+      fullName: _fullNameController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
 
-    setState(() {
-      _isLoading = true;
-    });
+    if (!mounted) return;
 
-    try {
-      await Future.delayed(const Duration(seconds: 2));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Cadastro realizado com sucesso!')),
+    );
 
-      if (!mounted) return;
+    // Navigator.pushReplacementNamed(context, '/home');
+  } catch (e) {
+    if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cadastro realizado com sucesso!'),
-        ),
-      );
-
-      // Exemplo:
-      // Navigator.pushReplacementNamed(context, '/home');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao cadastrar: $e'),
-        ),
-      );
-    } finally {
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+    );
   }
+}
 
   String? _validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -126,19 +118,14 @@ class _RegisterPageState extends State<RegisterPage> {
       labelText: label,
       prefixIcon: Icon(icon),
       suffixIcon: suffixIcon,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cadastro'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Cadastro'), centerTitle: true),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -148,10 +135,7 @@ class _RegisterPageState extends State<RegisterPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 16),
-                const Icon(
-                  Icons.person_add_alt_1,
-                  size: 72,
-                ),
+                const Icon(Icons.person_add_alt_1, size: 72),
                 const SizedBox(height: 16),
                 Text(
                   'Crie sua conta',
@@ -167,7 +151,18 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 32),
 
                 TextFormField(
-                  controller: _nameController,
+                  controller: _usernameController,
+                  textInputAction: TextInputAction.next,
+                  validator: _validateName,
+                  decoration: _inputDecoration(
+                    label: 'Usuário',
+                    icon: Icons.person_outline,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _fullNameController,
                   textInputAction: TextInputAction.next,
                   validator: _validateName,
                   decoration: _inputDecoration(
@@ -225,8 +220,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
-                          _obscureConfirmPassword =
-                              !_obscureConfirmPassword;
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
                         });
                       },
                       icon: Icon(
