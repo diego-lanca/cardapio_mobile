@@ -2,7 +2,10 @@ import 'package:cardapio_mobile/pages/about_page.dart';
 import 'package:cardapio_mobile/pages/cart_page.dart';
 import 'package:cardapio_mobile/pages/menu_page.dart';
 import 'package:cardapio_mobile/pages/profile_page.dart';
+import 'package:cardapio_mobile/providers/cart_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -21,153 +24,136 @@ class _MainPageState extends State<MainPage> {
     ProfilePage(),
   ];
 
-  String get _title {
-    switch (_currentIndex) {
-      case 0:
-        return 'Cardápio';
-      case 1:
-        return 'Carrinho';
-      case 2:
-        return 'Sobre';
-      case 3:
-        return 'Perfil';
-      default:
-        return '';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _MainHeader(
-              currentTabTitle: _title,
-            ),
-            Expanded(
-              child: IndexedStack(
-                index: _currentIndex,
-                children: _pages,
-              ),
-            ),
-          ],
-        ),
+    final totalItems = context.select<CartProvider, int>(
+      (provider) => provider.totalItems,
+    );
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.restaurant_menu_outlined),
-            selectedIcon: Icon(Icons.restaurant_menu),
-            label: 'Cardápio',
+      child: Scaffold(
+        backgroundColor: const Color(0xFFE53935),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Container(
+                color: const Color(0xFFE53935),
+                child: SafeArea(
+                  bottom: false,
+                  child: const _TopNavigationBar(),
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  color: const Color(0xFFF6F6F6),
+                  child: IndexedStack(index: _currentIndex, children: _pages),
+                ),
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined),
-            selectedIcon: Icon(Icons.shopping_cart),
-            label: 'Carrinho',
+        ),
+        bottomNavigationBar: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Color.fromRGBO(0, 0, 0, 0.08),
+                blurRadius: 16,
+                offset: Offset(0, -2),
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.info_outline),
-            selectedIcon: Icon(Icons.info),
-            label: 'Sobre',
+          child: NavigationBar(
+            height: 72,
+            backgroundColor: Colors.white,
+            surfaceTintColor: Colors.transparent,
+            indicatorColor: const Color(0xFFE53935).withOpacity(0.12),
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            destinations: [
+              const NavigationDestination(
+                icon: Icon(Icons.restaurant_menu_outlined),
+                selectedIcon: Icon(Icons.restaurant_menu),
+                label: 'Cardápio',
+              ),
+              NavigationDestination(
+                icon: Badge(
+                  isLabelVisible: totalItems > 0,
+                  label: Text('$totalItems'),
+                  child: const Icon(Icons.shopping_cart_outlined),
+                ),
+                selectedIcon: Badge(
+                  isLabelVisible: totalItems > 0,
+                  label: Text('$totalItems'),
+                  child: const Icon(Icons.shopping_cart),
+                ),
+                label: 'Carrinho',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.info_outline),
+                selectedIcon: Icon(Icons.info),
+                label: 'Sobre',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: 'Perfil',
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _MainHeader extends StatelessWidget {
-  final String currentTabTitle;
-
-  const _MainHeader({
-    required this.currentTabTitle,
-  });
+class _TopNavigationBar extends StatelessWidget {
+  const _TopNavigationBar();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
+      height: 58,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.red,
+        border: Border(bottom: BorderSide(color: Colors.red.shade200)),
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: const Color(0xFFE53935).withOpacity(0.12),
-            child: const Icon(
-              Icons.storefront,
-              color: Color(0xFFE53935),
+          IconButton(
+            onPressed: () {
+              Navigator.maybePop(context);
+            },
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 20,
+              color: Color(0xFFDDDCDC),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Rotisseria do Mércio',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  currentTabTitle,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.green,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Aberto • 30-40 min',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+          const Expanded(
+            child: Text(
+              'Rotisseria do Mércio',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFFDDDCDC),
+              ),
             ),
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.search),
+            icon: const Icon(Icons.more_vert, color: Color(0xFFDDDCDC)),
           ),
         ],
       ),

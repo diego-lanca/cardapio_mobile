@@ -3,6 +3,7 @@ import 'package:cardapio_mobile/pages/login_page.dart';
 import 'package:cardapio_mobile/pages/main_page.dart';
 import 'package:cardapio_mobile/pages/register_page.dart';
 import 'package:cardapio_mobile/providers/auth_provider.dart';
+import 'package:cardapio_mobile/providers/cart_provider.dart';
 import 'package:cardapio_mobile/services/local_storage_service.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
@@ -25,13 +26,14 @@ class MainApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AuthProvider(storageService: LocalStorageService()),
         ),
+        ChangeNotifierProvider(create: (_) => CartProvider())
       ],
       child: MaterialApp(
         title: 'Cardápio App',
         initialRoute: '/login',
         debugShowCheckedModeBanner: false,
         routes: {
-          '/login': (context) => const LoginView(),
+          '/login': (context) => const LoginPage(),
           '/register': (context) => const RegisterPage(),
           '/home': (context) => const HomePage(),
           '/main': (context) => const MainPage()
