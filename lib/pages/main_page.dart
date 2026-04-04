@@ -72,7 +72,7 @@ class _MainPageState extends State<MainPage> {
             height: 72,
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,
-            indicatorColor: const Color(0xFFE53935).withOpacity(0.12),
+            indicatorColor: const Color(0xFFE53935).withValues(alpha:0.12),
             selectedIndex: _currentIndex,
             onDestinationSelected: (index) {
               setState(() {
@@ -130,16 +130,16 @@ class _TopNavigationBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () {
-              Navigator.maybePop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 20,
-              color: Color(0xFFDDDCDC),
-            ),
-          ),
+        //   IconButton(
+        //     onPressed: () {
+        //       Navigator.maybePop(context);
+        //     },
+        //     icon: const Icon(
+        //       Icons.arrow_back_ios_new_rounded,
+        //       size: 20,
+        //       color: Color(0xFFDDDCDC),
+        //     ),
+        //   ),
           const Expanded(
             child: Text(
               'Rotisseria do Mércio',
@@ -151,10 +151,10 @@ class _TopNavigationBar extends StatelessWidget {
               ),
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.more_vert, color: Color(0xFFDDDCDC)),
-          ),
+          // IconButton(
+          //   onPressed: () {},
+          //   icon: const Icon(Icons.more_vert, color: Color(0xFFDDDCDC)),
+          // ),
         ],
       ),
     );

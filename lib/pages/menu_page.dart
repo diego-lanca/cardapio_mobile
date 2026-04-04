@@ -180,7 +180,7 @@ class _MenuPageState extends State<MenuPage> {
                       child: Container(
                         height: 190,
                         width: double.infinity,
-                        color: section.color.withOpacity(0.14),
+                        color: section.color.withValues(alpha:0.14),
                         child: item.imageUrl == null || item.imageUrl!.isEmpty
                             ? Icon(
                                 Icons.fastfood,
@@ -587,7 +587,7 @@ class _MenuPageState extends State<MenuPage> {
           width: 46,
           height: 46,
           decoration: BoxDecoration(
-            color: section.color.withOpacity(0.14),
+            color: section.color.withValues(alpha:0.14),
             shape: BoxShape.circle,
           ),
           child: Icon(section.icon, color: section.color),
@@ -625,7 +625,7 @@ class _MenuPageState extends State<MenuPage> {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha:0.04),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -640,7 +640,7 @@ class _MenuPageState extends State<MenuPage> {
               child: Container(
                 width: 110,
                 height: 110,
-                color: section.color.withOpacity(0.16),
+                color: section.color.withValues(alpha:0.16),
                 child: item.imageUrl == null || item.imageUrl!.isEmpty
                     ? Icon(Icons.fastfood, color: section.color, size: 36)
                     : Image.network(
@@ -833,7 +833,7 @@ class _MainHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha:0.04),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),

@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class AdminPage extends StatelessWidget {
+  const AdminPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +48,7 @@ class HomePage extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: [
                       Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.primary.withOpacity(0.75),
+                      Theme.of(context).colorScheme.primary.withValues(alpha:0.75),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -68,7 +68,7 @@ class HomePage extends StatelessWidget {
                     Text(
                       user?.email ?? 'Sem e-mail',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha:0.9),
                           ),
                     ),
                     const SizedBox(height: 16),
@@ -78,7 +78,7 @@ class HomePage extends StatelessWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
+                        color: Colors.white.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(

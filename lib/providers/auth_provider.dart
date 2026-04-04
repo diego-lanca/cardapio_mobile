@@ -6,9 +6,7 @@ import '../models/user_model.dart';
 class AuthProvider with ChangeNotifier {
   final LocalStorageService storageService;
 
-  AuthProvider({
-    required this.storageService,
-  });
+  AuthProvider({required this.storageService});
 
   UserModel? _currentUser;
   bool _isLoading = false;
@@ -18,25 +16,25 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   // Future<void> init() async {
-  //   _setLoading(true);
+  //  _setLoading(true);
 
-  //   try {
-  //     final token = await storageService.getAuthToken();
+  //  try {
+  //    final token = await storageService.getAuthToken();
 
-  //     if (token != null) {
-  //       await Future.delayed(const Duration(milliseconds: 800));
+  //    if (token != null) {
+  //      await Future.delayed(const Duration(milliseconds: 800));
 
-  //       _currentUser = UserModel(
-  //         id: 1,
-  //         email: 'diego@email.com',
-  //         username: 'diego',
-  //         fullName: 'Diego Lança',
-  //         isAdmin: false,
-  //       );
-  //     }
-  //   } finally {
-  //     _setLoading(false);
-  //   }
+  //      _currentUser = UserModel(
+  //        id: 1,
+  //        email: 'diego@email.com',
+  //        username: 'diego',
+  //        fullName: 'Diego Lança',
+  //        isAdmin: false,
+  //      );
+  //    }
+  //  } finally {
+  //    _setLoading(false);
+  //  }
   // }
 
   Future<void> login({
@@ -49,20 +47,16 @@ class AuthProvider with ChangeNotifier {
       await Future.delayed(const Duration(seconds: 1));
 
       if (username.isEmpty || password.isEmpty) {
-        throw Exception('Usuário e senha são obrigatórios');
-      }
-
-      if (password.length < 4) {
-        throw Exception('Senha inválida');
+        throw Exception('Preencha e-mail e senha');
       }
 
       await storageService.setAuthToken('mock_token_123');
 
       _currentUser = UserModel(
         id: 1,
-        email: '$username@email.com',
-        username: username,
-        fullName: 'Usuário Mock',
+        email: username,
+        username: username.split('@').first,
+        fullName: 'Usuário',
         isAdmin: false,
       );
 
@@ -163,21 +157,15 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> forgotPassword({required String email}) async {
-  _setLoading(true);
-  try {
-    await Future.delayed(const Duration(seconds: 1));
-    if (email.isEmpty || !email.contains('@')) {
-      throw Exception('E-mail inválido');
+    _setLoading(true);
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+      if (email.isEmpty || !email.contains('@')) {
+        throw Exception('E-mail inválido');
+      }
+      // TODO: integrar com API real
+    } finally {
+      _setLoading(false);
     }
-    // TODO: integrar com API real
-  } finally {
-    _setLoading(false);
   }
-}
-
-
-
-
-
-
 }

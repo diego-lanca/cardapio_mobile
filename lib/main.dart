@@ -1,4 +1,4 @@
-import 'package:cardapio_mobile/pages/home_page.dart';
+import 'package:cardapio_mobile/pages/admin_page.dart';
 import 'package:cardapio_mobile/pages/login_page.dart';
 import 'package:cardapio_mobile/pages/main_page.dart';
 import 'package:cardapio_mobile/pages/forgot_password_page.dart';
@@ -37,7 +37,7 @@ class MainApp extends StatelessWidget {
           '/login': (context) => const LoginPage(),
           '/register': (context) => const RegisterPage(),
           '/forgot-password': (context) => const ForgotPasswordPage(),
-          '/home': (context) => const HomePage(),
+          '/admin': (context) => const AdminPage(),
           '/main': (context) => const MainPage()
         },
       ),
