@@ -161,4 +161,23 @@ class AuthProvider with ChangeNotifier {
     _isLoading = value;
     notifyListeners();
   }
+
+  Future<void> forgotPassword({required String email}) async {
+  _setLoading(true);
+  try {
+    await Future.delayed(const Duration(seconds: 1));
+    if (email.isEmpty || !email.contains('@')) {
+      throw Exception('E-mail inválido');
+    }
+    // TODO: integrar com API real
+  } finally {
+    _setLoading(false);
+  }
+}
+
+
+
+
+
+
 }
