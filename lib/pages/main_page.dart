@@ -1,6 +1,6 @@
-import 'package:cardapio_mobile/pages/about_page.dart';
 import 'package:cardapio_mobile/pages/cart_page.dart';
 import 'package:cardapio_mobile/pages/menu_page.dart';
+import 'package:cardapio_mobile/pages/order_history_page.dart';
 import 'package:cardapio_mobile/pages/profile_page.dart';
 import 'package:cardapio_mobile/providers/cart_provider.dart';
 import 'package:flutter/material.dart';
@@ -16,13 +16,18 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
+  late final List<Widget> _pages;
 
-  final List<Widget> _pages = const [
-    MenuPage(),
-    CartPage(),
-    AboutPage(),
-    ProfilePage(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const MenuPage(),
+      CartPage(onOrderPlaced: () => setState(() => _currentIndex = 2)),
+      const OrderHistoryPage(),
+      const ProfilePage(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +77,7 @@ class _MainPageState extends State<MainPage> {
             height: 72,
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,
-            indicatorColor: const Color(0xFFE53935).withValues(alpha:0.12),
+            indicatorColor: const Color(0xFFE53935).withValues(alpha: 0.12),
             selectedIndex: _currentIndex,
             onDestinationSelected: (index) {
               setState(() {
@@ -99,9 +104,9 @@ class _MainPageState extends State<MainPage> {
                 label: 'Carrinho',
               ),
               const NavigationDestination(
-                icon: Icon(Icons.info_outline),
-                selectedIcon: Icon(Icons.info),
-                label: 'Sobre',
+                icon: Icon(Icons.receipt_long_outlined),
+                selectedIcon: Icon(Icons.receipt_long),
+                label: 'Histórico',
               ),
               const NavigationDestination(
                 icon: Icon(Icons.person_outline),
@@ -130,16 +135,16 @@ class _TopNavigationBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-        //   IconButton(
-        //     onPressed: () {
-        //       Navigator.maybePop(context);
-        //     },
-        //     icon: const Icon(
-        //       Icons.arrow_back_ios_new_rounded,
-        //       size: 20,
-        //       color: Color(0xFFDDDCDC),
-        //     ),
-        //   ),
+          //   IconButton(
+          //     onPressed: () {
+          //       Navigator.maybePop(context);
+          //     },
+          //     icon: const Icon(
+          //       Icons.arrow_back_ios_new_rounded,
+          //       size: 20,
+          //       color: Color(0xFFDDDCDC),
+          //     ),
+          //   ),
           const Expanded(
             child: Text(
               'Rotisseria do Mércio',

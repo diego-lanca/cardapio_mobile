@@ -1,5 +1,6 @@
 import 'package:cardapio_mobile/models/menu_item.dart';
 import 'package:cardapio_mobile/providers/cart_provider.dart';
+import 'package:cardapio_mobile/providers/menu_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,29 +17,79 @@ class _MenuPageState extends State<MenuPage> {
   String _selectedSection = 'Todos';
   bool _isAutoScrolling = false;
 
-  bool loading = false;
   String searchTerm = '';
+  List<MenuSection> allSections = [];
+  List<MenuSection> filteredSections = [];
 
-  late List<MenuSection> allSections;
-  late List<MenuSection> filteredSections;
-
+  MenuProvider? _menuProvider;
   final Map<String, GlobalKey> _sectionKeys = {};
 
   @override
   void initState() {
     super.initState();
-    allSections = _mockSections();
-    filteredSections = allSections;
-    _buildSectionKeys();
     _scrollController.addListener(_handleScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _menuProvider = context.read<MenuProvider>();
+      _menuProvider!.addListener(_onMenuChanged);
+      if (_menuProvider!.items.isEmpty) {
+        _menuProvider!.loadItems();
+      } else {
+        _onMenuChanged();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _menuProvider?.removeListener(_onMenuChanged);
     _scrollController.removeListener(_handleScroll);
     _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onMenuChanged() {
+    if (!mounted) return;
+    setState(() {
+      allSections = _buildSectionsFromItems(_menuProvider!.items);
+      _filterItems(searchTerm);
+    });
+  }
+
+  List<MenuSection> _buildSectionsFromItems(List<MenuItem> items) {
+    final Map<String, List<MenuItem>> grouped = {};
+    for (final item in items) {
+      (grouped[item.category] ??= []).add(item);
+    }
+    return grouped.entries.map((e) {
+      final (color, icon) = _categoryThemeFor(e.key);
+      return MenuSection(name: e.key, color: color, icon: icon, items: e.value);
+    }).toList();
+  }
+
+  static (Color, IconData) _categoryThemeFor(String category) {
+    final key = category.toLowerCase();
+    if (key.contains('hambúrguer') ||
+        key.contains('hamburguer') ||
+        key.contains('burger')) {
+      return (const Color(0xFFE53935), Icons.lunch_dining);
+    }
+    if (key.contains('pizza')) {
+      return (const Color(0xFFFB8C00), Icons.local_pizza);
+    }
+    if (key.contains('bebida') || key.contains('drink')) {
+      return (const Color(0xFF1E88E5), Icons.local_drink);
+    }
+    if (key.contains('sobremesa') || key.contains('doce')) {
+      return (const Color(0xFF8E24AA), Icons.icecream);
+    }
+    if (key.contains('lanche')) {
+      return (const Color(0xFF43A047), Icons.fastfood);
+    }
+    if (key.contains('porção') || key.contains('porcao')) {
+      return (const Color(0xFF8D6E63), Icons.set_meal);
+    }
+    return (const Color(0xFF546E7A), Icons.restaurant_menu);
   }
 
   void _handleScroll() {
@@ -180,7 +231,7 @@ class _MenuPageState extends State<MenuPage> {
                       child: Container(
                         height: 190,
                         width: double.infinity,
-                        color: section.color.withValues(alpha:0.14),
+                        color: section.color.withValues(alpha: 0.14),
                         child: item.imageUrl == null || item.imageUrl!.isEmpty
                             ? Icon(
                                 Icons.fastfood,
@@ -190,7 +241,7 @@ class _MenuPageState extends State<MenuPage> {
                             : Image.network(
                                 item.imageUrl!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Icon(
+                                errorBuilder: (_, _, _) => Icon(
                                   Icons.fastfood,
                                   size: 64,
                                   color: section.color,
@@ -409,18 +460,45 @@ class _MenuPageState extends State<MenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
+    final menu = context.watch<MenuProvider>();
+
+    if (menu.isLoading && allSections.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (filteredSections.isEmpty) {
+    if (menu.error != null && allSections.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              menu.error!,
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _menuProvider?.loadItems(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE53935),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Tentar novamente'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (filteredSections.isEmpty && !menu.isLoading) {
       return Column(
         children: [
           _buildTopBar(),
           Expanded(
             child: Center(
               child: Text(
-                'Nenhum produto disponível no momento.',
+                searchTerm.isEmpty
+                    ? 'Nenhum produto disponível no momento.'
+                    : 'Nenhum resultado para "$searchTerm".',
                 style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
               ),
             ),
@@ -464,7 +542,7 @@ class _MenuPageState extends State<MenuPage> {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: categoryNames.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final category = categoryNames[index];
                 final isSelected = _selectedSection == category;
@@ -587,7 +665,7 @@ class _MenuPageState extends State<MenuPage> {
           width: 46,
           height: 46,
           decoration: BoxDecoration(
-            color: section.color.withValues(alpha:0.14),
+            color: section.color.withValues(alpha: 0.14),
             shape: BoxShape.circle,
           ),
           child: Icon(section.icon, color: section.color),
@@ -625,7 +703,7 @@ class _MenuPageState extends State<MenuPage> {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -640,13 +718,13 @@ class _MenuPageState extends State<MenuPage> {
               child: Container(
                 width: 110,
                 height: 110,
-                color: section.color.withValues(alpha:0.16),
+                color: section.color.withValues(alpha: 0.16),
                 child: item.imageUrl == null || item.imageUrl!.isEmpty
                     ? Icon(Icons.fastfood, color: section.color, size: 36)
                     : Image.network(
                         item.imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
+                        errorBuilder: (_, _, _) => Icon(
                           Icons.fastfood,
                           color: section.color,
                           size: 36,
@@ -723,87 +801,6 @@ class _MenuPageState extends State<MenuPage> {
       ),
     );
   }
-
-  List<MenuSection> _mockSections() {
-    return [
-      MenuSection(
-        name: 'Hambúrgueres',
-        color: const Color(0xFFE53935),
-        icon: Icons.lunch_dining,
-        items: [
-          MenuItem(
-            id: 'burguer_1',
-            name: 'X-Burger',
-            description: 'Pão, hambúrguer, queijo e molho especial.',
-            price: 22.90,
-          ),
-          MenuItem(
-            id: 'salada_1',
-            name: 'X-Salada',
-            description: 'Hambúrguer, queijo, alface, tomate e maionese.',
-            price: 25.90,
-          ),
-          MenuItem(
-            id: 'burguer_2',
-            name: 'Bacon Burger',
-            description: 'Hambúrguer artesanal, cheddar e bacon crocante.',
-            price: 29.90,
-          ),
-        ],
-      ),
-      MenuSection(
-        name: 'Pizzas',
-        color: const Color(0xFFFB8C00),
-        icon: Icons.local_pizza,
-        items: [
-          MenuItem(
-            id: 'pizza_1',
-            name: 'Calabresa',
-            description: 'Molho, queijo, calabresa e cebola.',
-            price: 49.90,
-          ),
-          MenuItem(
-            id: 'pizza_2',
-            name: 'Frango com Catupiry',
-            description: 'Frango desfiado, catupiry e queijo.',
-            price: 54.90,
-          ),
-        ],
-      ),
-      MenuSection(
-        name: 'Bebidas',
-        color: const Color(0xFF1E88E5),
-        icon: Icons.local_drink,
-        items: [
-          MenuItem(
-            id: "coca_1",
-            name: 'Coca-Cola 350ml',
-            description: 'Lata gelada.',
-            price: 6.00,
-          ),
-          MenuItem(
-            id: 'suco_1',
-            name: 'Suco Natural',
-            description: 'Suco natural de laranja 500ml.',
-            price: 8.50,
-          ),
-        ],
-      ),
-      MenuSection(
-        name: 'Sobremesas',
-        color: const Color(0xFF8E24AA),
-        icon: Icons.icecream,
-        items: [
-          MenuItem(
-            id: 'sorvete_1',
-            name: 'Petit Gateau',
-            description: 'Bolo quente com sorvete de creme.',
-            price: 18.90,
-          ),
-        ],
-      ),
-    ];
-  }
 }
 
 class MenuSection {
@@ -833,7 +830,7 @@ class _MainHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -860,10 +857,10 @@ class _MainHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Wrap(
+          const Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: const [
+            children: [
               _HeaderInfoChip(
                 icon: Icons.circle,
                 text: 'Aberto agora',

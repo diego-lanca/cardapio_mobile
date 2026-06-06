@@ -11,6 +11,8 @@ dependencies:
   dio: ^5.9.2
   flutter:
     sdk: flutter
+  flutter_dotenv: ^5.2.1
+  intl: ^0.20.2
   provider: ^6.1.5+1
   shared_preferences: ^2.5.5
 
@@ -23,3 +25,4 @@ flutter:
   uses-material-design: true
   assets:
    - assets/images/
+   - .env

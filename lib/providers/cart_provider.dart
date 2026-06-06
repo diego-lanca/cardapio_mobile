@@ -8,11 +8,9 @@ class CartProvider with ChangeNotifier {
 
   List<CartItem> get items => List.unmodifiable(_items);
 
-  int get totalItems =>
-      _items.fold(0, (sum, item) => sum + item.quantity);
+  int get totalItems => _items.fold(0, (sum, item) => sum + item.quantity);
 
-  double get subtotal =>
-      _items.fold(0.0, (sum, item) => sum + item.total);
+  double get subtotal => _items.fold(0.0, (sum, item) => sum + item.total);
 
   double get deliveryFee => _items.isEmpty ? 0 : 6.0;
 
@@ -28,44 +26,35 @@ class CartProvider with ChangeNotifier {
         quantity: _items[index].quantity + 1,
       );
     } else {
-      _items.add(
-        CartItem(product: product, quantity: 1),
-      );
+      _items.add(CartItem(product: product, quantity: 1));
     }
 
     notifyListeners();
   }
 
-  void removeItem(String productId) {
+  void removeItem(int productId) {
     _items.removeWhere((item) => item.product.id == productId);
     notifyListeners();
   }
 
-  void incrementQuantity(String productId) {
+  void incrementQuantity(int productId) {
     final index = _items.indexWhere((item) => item.product.id == productId);
-
     if (index == -1) return;
-
     _items[index] = _items[index].copyWith(
       quantity: _items[index].quantity + 1,
     );
-
     notifyListeners();
   }
 
-  void decrementQuantity(String productId) {
+  void decrementQuantity(int productId) {
     final index = _items.indexWhere((item) => item.product.id == productId);
-
     if (index == -1) return;
 
-    final currentItem = _items[index];
-
-    if (currentItem.quantity <= 1) {
+    final current = _items[index];
+    if (current.quantity <= 1) {
       _items.removeAt(index);
     } else {
-      _items[index] = currentItem.copyWith(
-        quantity: currentItem.quantity - 1,
-      );
+      _items[index] = current.copyWith(quantity: current.quantity - 1);
     }
 
     notifyListeners();

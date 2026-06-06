@@ -1,20 +1,86 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/auth_provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/order_provider.dart';
 
-class CartPage extends StatelessWidget {
-  const CartPage({super.key});
+class CartPage extends StatefulWidget {
+  final VoidCallback? onOrderPlaced;
+  const CartPage({super.key, this.onOrderPlaced});
+
+  @override
+  State<CartPage> createState() => _CartPageState();
+}
+
+class _CartPageState extends State<CartPage> {
+  Future<void> _placeOrder() async {
+    final userId = context.read<AuthProvider>().currentUser?.id;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Faça login para finalizar o pedido')),
+      );
+      return;
+    }
+
+    try {
+      await context.read<OrderProvider>().placeOrder(
+        userId: userId,
+        items: context.read<CartProvider>().items.toList(),
+      );
+      if (!mounted) return;
+      context.read<CartProvider>().clearCart();
+      widget.onOrderPlaced?.call();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pedido realizado com sucesso!')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
+    final isPlacing = context.watch<OrderProvider>().isPlacing;
 
     if (cart.isEmpty) {
-      return const Center(
-        child: Text(
-          'Seu carrinho está vazio',
-          style: TextStyle(fontSize: 18),
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE53935).withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.shopping_cart_outlined,
+                size: 44,
+                color: Color(0xFFE53935),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Carrinho vazio',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Adicione itens do cardápio\npara continuar.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade500,
+                height: 1.5,
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -25,10 +91,9 @@ class CartPage extends StatelessWidget {
           child: ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: cart.items.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final item = cart.items[index];
-
               return Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -36,7 +101,7 @@ class CartPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha:0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 10,
                       offset: const Offset(0, 3),
                     ),
@@ -84,11 +149,9 @@ class CartPage extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              onPressed: () {
-                                context
-                                    .read<CartProvider>()
-                                    .decrementQuantity(item.product.id);
-                              },
+                              onPressed: () => context
+                                  .read<CartProvider>()
+                                  .decrementQuantity(item.product.id),
                               icon: const Icon(Icons.remove_circle_outline),
                             ),
                             Text(
@@ -99,20 +162,16 @@ class CartPage extends StatelessWidget {
                               ),
                             ),
                             IconButton(
-                              onPressed: () {
-                                context
-                                    .read<CartProvider>()
-                                    .incrementQuantity(item.product.id);
-                              },
+                              onPressed: () => context
+                                  .read<CartProvider>()
+                                  .incrementQuantity(item.product.id),
                               icon: const Icon(Icons.add_circle_outline),
                             ),
                           ],
                         ),
                         Text(
                           'R\$ ${item.total.toStringAsFixed(2).replaceAll('.', ',')}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                       ],
                     ),
@@ -159,15 +218,7 @@ class CartPage extends StatelessWidget {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Pedido finalizado com sucesso!'),
-                      ),
-                    );
-
-                    context.read<CartProvider>().clearCart();
-                  },
+                  onPressed: isPlacing ? null : _placeOrder,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFE53935),
                     foregroundColor: Colors.white,
@@ -175,7 +226,18 @@ class CartPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: Text('Finalizar pedido (${cart.totalItems} itens)'),
+                  child: isPlacing
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : Text('Finalizar pedido (${cart.totalItems} itens)'),
                 ),
               ),
             ],
@@ -203,7 +265,6 @@ class _SummaryRow extends StatelessWidget {
       fontSize: isBold ? 17 : 15,
       fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
     );
-
     return Row(
       children: [
         Expanded(child: Text(label, style: style)),
